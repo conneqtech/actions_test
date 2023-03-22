@@ -1,0 +1,35 @@
+name: Approval checker
+
+on:
+  pull_request:
+    types: [review_requested, review_request_removed]
+  pull_request_review:
+
+env:
+  PR_NUMBER: ${{ github.event.pull_request.number }}
+  PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  check:
+    name: Approval by CODEOWNERS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Install approver
+        run: |
+          cnt=$(docker create 944769781491.dkr.ecr.eu-central-1.amazonaws.com/conneqtech/approver:gh-12)
+          docker cp $cnt:/app approver
+      - name: Run approver
+        run: ./approver
