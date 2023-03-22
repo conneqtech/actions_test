@@ -1,9 +1,12 @@
 # This is a demo repo for the following issue
 
 I wrote a simple github action to checks if all code owners have approved a PR. This check is triggered by:
+
+```
 pull_request:
-types: [review_requested, review_request_removed]
+  types: [review_requested, review_request_removed]
 pull_request_review:
+```
 
 And made this a required check on the protected branches.
 However when adding a new commit to a pr (which dismisses an approval) the check runs and fails (as it should, since the approval is no longer there). When the codeowner then approves the PR, the check runs again, and it succeeds (as it should).
